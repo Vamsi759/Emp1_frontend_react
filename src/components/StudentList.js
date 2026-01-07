@@ -74,7 +74,7 @@ export default function StudentList() {
   return (
     <div className="container" style={{backgroundColor:"lightgreen"}}>
       <div className="header">
-        <h2>Student management</h2>
+        <h2>Student List</h2>
         <Link to="/add" className="btn add-btn">+ Add Student</Link>
       </div>
 
