@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:8080/api/students";
+const BASE_URL = "https://emp1-restapi-spring-backend-1.onrender.com";
 
 export const getAllStudents = () =>
   fetch(BASE_URL).then(res => res.json());
