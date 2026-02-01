@@ -117,7 +117,7 @@ export default function StudentList() {
         </tbody>
       </table>
           <div>
-<Link to="https://leetcode.com/u/krishna_vamsi_katta" className="btn add-btn">+ Add Student</Link>
+
           </div>
     </div>
   );
