@@ -1,4 +1,4 @@
-const BASE_URL = "https://emp1-jan1-2.onrender.com";
+const BASE_URL = "https://emp1-jan1-2.onrender.com/api/students";
 
 export const getAllStudents = () =>
   fetch(BASE_URL).then(res => res.json());
