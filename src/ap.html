@@ -1,0 +1,653 @@
+It looks like your code template accidentally got broken and cut off halfway through with some messy mixed fragments.
+Here is the fully fixed, clean, and complete code from top to bottom. It fixes the HTML structure errors, removes the broken fragments, and ensures your **floating chatbot-style buttons** work perfectly in the bottom-right corner whenever a subtopic is opened.
+```html
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Subject Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f4f7fc;
+      color: #333;
+    }
+
+    /* MAIN LAYOUT */
+    .container-fluid {
+      display: flex;
+      height: 100vh;
+      padding: 0;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 28%;
+      background: linear-gradient(180deg, #1e3c72, #2a5298);
+      color: white;
+      padding: 20px;
+      overflow-y: auto;
+      box-shadow: 4px 0 15px rgba(0, 0, 0, 0.15);
+    }
+
+    .sidebar h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    /* CONTENT AREA */
+    .content {
+      width: 72%;
+      padding: 16px;
+      overflow-y: auto;       
+      overflow-x: hidden;
+      background: #eef2f7;
+    }
+
+    /* FLOATING CHATBOT STYLE BUTTON CONTAINER */
+    .bot-action-container {
+      position: fixed;
+      bottom: 25px;
+      right: 25px;
+      z-index: 9999; /* Keeps buttons layered perfectly over all elements */
+      display: flex;
+      flex-direction: column; 
+      gap: 12px;
+    }
+
+    .btn-bot-action {
+      padding: 12px 24px;
+      border-radius: 50px; /* Rounded pill chat-widget design */
+      font-weight: 600;
+      font-size: 14px;
+      border: none;
+      color: white;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.25);
+      transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    /* Edit Bot Variant */
+    .btn-bot-action.edit-bot {
+      background: linear-gradient(135deg, #f39c12, #e67e22);
+    }
+
+    .btn-bot-action.edit-bot:hover {
+      transform: translateY(-4px) scale(1.03);
+      box-shadow: 0 8px 20px rgba(243, 156, 18, 0.4);
+    }
+
+    /* Save Bot Variant */
+    .btn-bot-action.save-bot {
+      background: linear-gradient(135deg, #2ecc71, #27ae60);
+    }
+
+    .btn-bot-action.save-bot:hover {
+      transform: translateY(-4px) scale(1.03);
+      box-shadow: 0 8px 20px rgba(46, 204, 113, 0.4);
+    }
+
+    /* SIDEBAR BUTTONS */
+    .btn-sidebar {
+      width: 100%;
+      border: none;
+      padding: 12px;
+      margin-bottom: 8px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.12);
+      color: white;
+      font-weight: 600;
+      transition: 0.3s;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .btn-sidebar:hover {
+      background: #00c9a7;
+      transform: translateX(5px);
+    }
+
+    /* SUBTOPICS */
+    .subtopic-container {
+      margin-left: 15px;
+      margin-bottom: 10px;
+    }
+
+    .sub-btn {
+      width: 95%;
+      border: none;
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 6px;
+      background: #16a085;
+      color: white;
+      transition: 0.3s;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .sub-btn:hover {
+      background: #27ae60;
+      transform: translateX(5px);
+    }
+
+    /* CONTENT CARD */
+    .card {
+      border: none !important;
+      border-radius: 12px !important;
+      overflow: hidden;
+    }
+
+    /* HEADER */
+    .card-header {
+      position: static;       
+      background: linear-gradient(45deg, #0d6efd, #4f8cff) !important;
+      display: flex;
+      align-items: center;
+      padding: 14px 18px !important;
+    }
+
+    .card-header h3 {
+      margin: 0;
+      font-weight: 600;
+    }
+
+    .card-body {
+      background: white;
+      line-height: 1.8;
+      font-size: 16px;
+      padding: 0 !important;
+    }
+
+    /* THEORY TEXTAREA */
+    #theoryText {
+      width: 100%;
+      min-height: calc(100vh - 110px); 
+      resize: none;
+      border: none;
+      outline: none;
+      padding: 20px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-size: 16px;
+      line-height: 1.8;
+      color: #333;
+      background: #fff;
+      white-space: pre;       
+      overflow-x: auto;       
+      overflow-y: hidden;     
+      border-radius: 0 0 12px 12px;
+      display: block;
+      box-sizing: border-box;
+      cursor: default;
+    }
+
+    #theoryText.editable {
+      background: #f0f7ff;
+      cursor: text;
+      border-top: 2px solid #0d6efd;
+      overflow-y: auto;        
+    }
+
+    /* FORM SECTION */
+    .sec {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      padding: 40px;
+      flex-wrap: wrap;
+      background: #eef2f7;
+    }
+
+    /* FORM BOX */
+    .ap {
+      width: 100%;
+      padding: 25px;
+      background: rgb(232, 230, 230);
+      border-radius: 15px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      transition: 0.3s;
+      margin-top: 20px;
+    }
+
+    .ap h2 {
+      margin-bottom: 20px;
+      font-weight: 700;
+      color: #2c3e50;
+    }
+
+    .form-control {
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 15px;
+      border: 1px solid #dcdcdc;
+    }
+
+    /* AI CONTAINER */
+    .aicontainer {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 20px;
+      width: 90%;
+      margin: 30px auto;
+    }
+
+    .zzz,
+    .ztwo {
+      flex: 1 1 0;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    label {
+      font-weight: 600;
+      color: #34495e;
+      font-size: 14px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 320px;
+      border-radius: 10px;
+      border: 1px solid #d0d0d0;
+      padding: 12px;
+      resize: vertical;
+      font-family: Consolas, monospace;
+      font-size: 13px;
+      background: #fafafa;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: none;
+      background: linear-gradient(45deg, #0d6efd, #3f8cff);
+      color: white;
+      padding: 10px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(13, 110, 253, 0.25);
+    }
+
+    /* MOBILE DEVICES */
+    @media (max-width: 992px) {
+      .container-fluid {
+        flex-direction: column;
+        height: auto;
+      }
+
+      .sidebar {
+        width: 100%;
+        padding: 15px;
+      }
+
+      .content {
+        width: 100%;
+        padding: 6px;
+      }
+
+      .bot-action-container {
+        bottom: 15px;
+        right: 15px;
+        gap: 8px;
+      }
+
+      .aicontainer {
+        flex-direction: column;
+        width: 100%;
+        padding: 10px;
+      }
+
+      .zzz,
+      .ztwo {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- GLOBAL FLOATING CHATBOT BUTTONS LAYER -->
+  <div class="bot-action-container" id="botInterface" style="display: none;">
+    <button class="btn-bot-action edit-bot" onclick="enableCardEdit()">✏️ Edit Document</button>
+    <button class="btn-bot-action save-bot" onclick="saveCardEdit()">💾 Save Changes</button>
+  </div>
+
+  <!-- TOP SPLIT SECTION: SIDEBAR + MAIN VIEWER -->
+  <div class="container-fluid">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="content" id="contentArea">
+      <h2>Welcome</h2>
+      <p>Select any subtopic from the sidebar to view content.</p>
+      <hr>
+    </div>
+  </div>
+
+  <!-- AI MANAGEMENT AND FORM PANEL -->
+  <div class="aicontainer">
+    
+    <!-- LEFT SIDE: ASK AI & DELETE UTILITIES -->
+    <div class="zzz">
+      <h2>Ask AI</h2>
+      <input type="text" id="prompt" placeholder="Enter your question…">
+      <div class="btn-row">
+        <button onclick="sendPrompt()">Ask</button>
+        <button onclick="callnormalcut()">Move to Save</button>
+      </div>
+      <h4 id="myHeading">Ai Response :</h4>
+      <textarea id="result" placeholder="AI response appears here…"></textarea>
+      
+      <div class="ap">
+        <h2>Remove Data</h2>
+        <input type="text" id="delsubject" class="form-control" placeholder="Subject Name">
+        <input type="text" id="delmaintopic" class="form-control" placeholder="Main Topic Name">
+        <input type="text" id="delsubtopic" class="form-control" placeholder="Sub Topic Name">
+        <button onclick="deleteData()" class="btn btn-danger w-100 mt-2">Delete</button>
+      </div>
+    </div>
+
+    <!-- RIGHT SIDE: DATA STAGING & PERSISTENCE -->
+    <div class="ztwo">
+      <h2>Add Data</h2>
+      <label>Subject</label>
+      <input type="text" id="subjectaisave" placeholder="Subject Name">
+
+      <label>Main Topic</label>
+      <input type="text" id="maintopicaisave" placeholder="Main Topic Name">
+
+      <label>Heading / Subtopic</label>
+      <input type="text" id="subtopicaisave" placeholder="Sub Topic Name">
+
+      <label>Cleaned Content</label>
+      <textarea id="resultclean" placeholder="Edit content before saving…"></textarea>
+
+      <button id="finalsubmit" onclick="aisave()">Save</button>
+    </div>
+
+  </div>
+
+  <script>
+    /* Global track arrays for runtime UI changes */
+    let currentSubject   = "";
+    let currentMaintopic = "";
+    let currentSubtopic  = "";
+    let data = {};
+
+    /* ---- SYSTEM INITIALIZATION & API FETCH ---- */
+    async function fetchData() {
+      try {
+        const response = await fetch("/apirl/rl");
+        if (!response.ok) throw new Error("Failed to load backend tree structural data");
+        data = await response.json();
+        loadSubjects();
+        return true;
+      } catch (error) {
+        console.error(error);
+        document.getElementById("contentArea").innerHTML = "<h2>Error</h2><p>Unable to load dashboard database structure from server layer.</p>";
+      }
+    }
+
+    function loadSubjects() {
+      const sidebar = document.getElementById("sidebar");
+      sidebar.innerHTML = "<h2>Subjects</h2>";
+      for (let subject in data) {
+        const btn = document.createElement("button");
+        btn.className = "btn-sidebar";
+        btn.innerText = subject;
+        btn.onclick = () => loadTopics(subject);
+        sidebar.appendChild(btn);
+      }
+    }
+
+    function loadTopics(subject) {
+      const sidebar = document.getElementById("sidebar");
+      sidebar.innerHTML = `<h2>${subject}</h2>`;
+
+      const backBtn = document.createElement("button");
+      backBtn.className = "btn-sidebar";
+      backBtn.innerText = "⬅ Back";
+      backBtn.onclick = loadSubjects;
+      sidebar.appendChild(backBtn);
+
+      for (let topic in data[subject]) {
+        const topicBtn = document.createElement("button");
+        topicBtn.className = "btn-sidebar";
+        topicBtn.innerText = topic;
+        sidebar.appendChild(topicBtn);
+
+        const subContainer = document.createElement("div");
+        subContainer.className = "subtopic-container";
+        sidebar.appendChild(subContainer);
+
+        topicBtn.onclick = () => {
+          if (subContainer.innerHTML !== "") { subContainer.innerHTML = ""; return; }
+          const subtopics = data[subject][topic];
+          for (let sub in subtopics) {
+            const subBtn = document.createElement("button");
+            subBtn.className = "sub-btn";
+            subBtn.innerText = sub;
+            subBtn.onclick = () => showContent(subject, topic, sub, subtopics[sub]);
+            subContainer.appendChild(subBtn);
+          }
+        };
+      }
+    }
+
+    /* ---- DYNAMIC WORKSPACE DISPLAY MANAGER ---- */
+    function showContent(subject, maintopic, subtopic, text) {
+      currentSubject   = subject   || currentSubject;
+      currentMaintopic = maintopic || currentMaintopic;
+      currentSubtopic  = subtopic;
+
+      // Unhide the chatbot configuration panel layout globally
+      document.getElementById("botInterface").style.display = "flex";
+
+      document.getElementById("contentArea").innerHTML = `
+        <div class="card shadow">
+          <div class="card-header text-white">
+            <h3 class="mb-0">${subtopic}</h3>
+          </div>
+          <div class="card-body">
+            <textarea id="theoryText" readonly spellcheck="false"></textarea>
+          </div>
+        </div>
+      `;
+
+      const ta = document.getElementById("theoryText");
+      ta.value = text;
+
+      autoResizeTextarea(ta);
+      ta.addEventListener("input", () => autoResizeTextarea(ta));
+    }
+
+    function autoResizeTextarea(ta) {
+      if (ta.scrollHeight <= ta.clientHeight) return;
+      const scroller = document.getElementById("contentArea");
+      const prevScrollTop = scroller ? scroller.scrollTop : null;
+
+      ta.style.height = "auto";
+      ta.style.height = ta.scrollHeight + "px";
+
+      if (scroller && prevScrollTop !== null) {
+        scroller.scrollTop = prevScrollTop;
+      }
+    }
+
+    /* ---- CHATBOT CORE CALLBACK ACTIONS ---- */
+    function enableCardEdit() {
+      const ta = document.getElementById("theoryText");
+      if (!ta) return;
+      ta.removeAttribute("readonly");
+      ta.classList.add("editable");
+      ta.focus();
+    }
+
+    function saveCardEdit() {
+      const ta = document.getElementById("theoryText");
+      if (!ta) return;
+
+      const newTheory = ta.value.trim();
+      if (!currentSubject || !currentMaintopic || !currentSubtopic) {
+        alert("No active workspace node selected targeting save payload runtime.");
+        return;
+      }
+      if (!newTheory) {
+        alert("Field validation failed. Content body must be populated.");
+        return;
+      }
+
+      fetch('/apirl/callnormalcut', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subjectname:   currentSubject,
+          maintopicname: currentMaintopic,
+          subtopicname:  currentSubtopic,
+          theory:        newTheory
+        })
+      })
+      .then(response => response.text())
+      .then(async () => {
+        if (data[currentSubject] && data[currentSubject][currentMaintopic]) {
+          data[currentSubject][currentMaintopic][currentSubtopic] = newTheory;
+        }
+        ta.setAttribute("readonly", true);
+        ta.classList.remove("editable");
+        autoResizeTextarea(ta);
+        alert("Changes synchronized and saved successfully.");
+      })
+      .catch(error => { console.error(error); alert("Network synchronization error. Save Failed."); });
+    }
+
+    /* ---- AI MODEL INTEGRATION UTILS ---- */
+    function sendPrompt() {
+      const userPrompt = document.getElementById("prompt").value;
+      document.getElementById("myHeading").innerHTML = "AI Response is Loading . . . . .";
+      fetch('/apap/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: userPrompt })
+      })
+      .then(r => r.text())
+      .then(d => { 
+        document.getElementById("result").value = d; 
+        document.getElementById("myHeading").innerHTML = "Ai Response :";
+      })
+      .catch(console.error);
+    }
+
+    function callnormalcut() {
+      document.getElementById("resultclean").value = document.getElementById("result").value;
+    }
+
+    function aisave() {
+      const subject   = document.getElementById("subjectaisave").value.trim();
+      const maintopic = document.getElementById("maintopicaisave").value.trim();
+      const subtopic  = document.getElementById("subtopicaisave").value.trim();
+      const theory    = document.getElementById("resultclean").value.trim();
+
+      if (!subject || !maintopic || !subtopic || !theory) {
+        alert("Validation error: All structure node forms required.");
+        return;
+      }
+
+      fetch('/apirl/callnormalcut', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subjectname: subject, maintopicname: maintopic, subtopicname: subtopic, theory: theory })
+      })
+      .then(response => response.text())
+      .then(async () => {
+        await fetchData();
+        showContent(subject, maintopic, subtopic, theory);
+        document.getElementById("subtopicaisave").value = "";
+        document.getElementById("resultclean").value    = "";
+      })
+      .catch(error => { console.error(error); alert("Save Configuration Layer Rejected Content."); });
+    }
+
+    /* ---- DATABASE DELETION NODE LOGIC ---- */
+    function deleteData() {
+      const subject   = document.getElementById("delsubject").value.trim();
+      const maintopic = document.getElementById("delmaintopic").value.trim();
+      const subtopic  = document.getElementById("delsubtopic").value.trim();
+
+      if (!subject || !maintopic || !subtopic) {
+        alert("Fill all delete fields targeting node components.");
+        return;
+      }
+
+      fetch('/apirl/del', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subjectname: subject, maintopicname: maintopic, subtopicname: subtopic })
+      })
+      .then(response => response.text())
+      .then(async result => {
+        if (data[subject] && data[subject][maintopic] && data[subject][maintopic][subtopic]) {
+          delete data[subject][maintopic][subtopic];
+          if (Object.keys(data[subject][maintopic]).length === 0) delete data[subject][maintopic];
+          if (Object.keys(data[subject]).length === 0) delete data[subject];
+        }
+
+        loadSubjects();
+        document.getElementById("botInterface").style.display = "none";
+        document.getElementById("contentArea").innerHTML = `<h2>Deleted Successfully</h2><p>${subtopic} node context has been removed from database.</p>`;
+
+        alert("[- " + subtopic + " -] Deleted Successfully");
+        document.getElementById("delsubject").value   = "";
+        document.getElementById("delmaintopic").value = "";
+        document.getElementById("delsubtopic").value  = "";
+      })
+      .catch(error => { console.error(error); alert("Node erasure execution pipeline rejected request."); });
+    }
+
+    // Trigger Initial runtime population sequence
+    fetchData();
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+
+```
